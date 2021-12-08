@@ -3,8 +3,8 @@
 #include "VoyagerConfig.h"
 
 void setup() {
-  // put your setup code here, to run once:
-
+  pinMode(NAV_LIGHTS_PIN,OUTPUT);
+  pinMode(NAV_BEACON_PIN, OUTPUT);
 }
 
 void loop() {
