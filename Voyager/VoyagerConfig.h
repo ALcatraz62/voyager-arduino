@@ -4,6 +4,16 @@
 /*
  * Arduino Pin Setup
  */
+// Control Pins
+#define NAV_TOGGLE_BTN 1
+#define INTERIOR_TOGGLE_BTN 2
+#define PORT_PHASER_BTN 3
+#define STARBOARD_PHASER_BTN 4
+#define FORWARD_PHOTON_BTN 5
+#define AFT_PHOTON_BTN 6 
+#define ENGINES_TOGGLE_PIN 7
+
+// Ship Pins 
 #define NAV_LIGHTS_PIN 3
 #define NAV_BEACON_PIN 4
 #define HEAD_LIGHT_PIN 5
@@ -16,6 +26,11 @@
 #define AFT_PHOTON_PORT 10
 #define AFT_PHOTON_STARBOARD 12
 
+/*
+ * Navigation Settings
+ */
+#define BLINK_ON_TIME 1000
+#define BLINK_OFF_TIME 2000
 
 /*
  * Phaser Settings
@@ -26,8 +41,14 @@
  * Photon Torpedoes Settings
  */
 
- /*
-  * Engine Settings
-  */
-  
+/*
+ * Engine Settings
+ */
+
+
+/* STATE FLAGS*/
+#define OFF 0
+#define ON 1
+#define BLINK_ON 2
+#define BLINK_OFF 3
 #endif
