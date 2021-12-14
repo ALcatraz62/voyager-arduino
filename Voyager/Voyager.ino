@@ -4,18 +4,35 @@
 #include "SfButton.h"
 
 unsigned long _lastUpdate;
-byte _navState;
+
 int _navCount;
 
+byte _navState;
+byte _headlightState;
+byte _interiorState;
+byte _deflectorState;
 
 SfButton _navBtn(NAV_TOGGLE_BTN);
+SfButton _headlightBtn(HEADLIGHT_BTN);
+SfButton _interiorBtn(INTERIOR_BTN);
+SfButton _deflectorBtn(DEFLECTOR_BTN);
 
 void setup() {
   _navState = OFF;
+  _headlightState = OFF;
+  _interiorState = OFF;
+  _deflectorState = OFF;
   
   _navBtn.setup();
+  _headlightBtn.setup();
+  _interiorBtn.setup();
+  _deflectorBtn.setup();
+  
   pinMode(NAV_LIGHTS_PIN,OUTPUT);
   pinMode(NAV_BEACON_PIN, OUTPUT);
+  pinMode(HEADLIGHT_PIN, OUTPUT);
+  pinMode(INTERIOR_LIGHTS_PIN, OUTPUT);
+  pinMode(DEFLECTOR_PIN, OUTPUT);
 }
 
 void loop()
@@ -24,8 +41,74 @@ void loop()
   unsigned long delta = currTime - _lastUpdate;
 
   _navBtn.update(currTime);
+  _headlightBtn.update(currTime);
+  
   updateNavState(delta);
+  updateHeadlightState(delta);
+  updateInteriorState(delta);
+  updateDeflectorState(delta);
   _lastUpdate = currTime;
+}
+
+void updateDeflectorState(unsigned long delta)
+{
+  switch(_deflectorState)
+  {
+    case OFF:
+      digitalWrite(DEFLECTOR_PIN, LOW);
+      if(_deflectorBtn.isPressed())
+      {
+        _deflectorState = ON;
+      }
+      break;
+    case ON:
+      digitalWrite(DEFLECTOR_PIN, HIGH);
+      if(_deflectorBtn.isPressed())
+      {
+        _deflectorState = OFF;
+      }
+      break;
+  }
+}
+
+void updateInteriorState(unsigned long delta)
+{
+  switch(_interiorState)
+  {
+    case OFF:
+      digitalWrite(INTERIOR_LIGHTS_PIN, LOW);
+      if(_interiorBtn.isPressed())
+      {
+        _interiorState = ON;
+      }
+      break;
+    case ON:
+     digitalWrite(INTERIOR_LIGHTS_PIN,HIGH);
+     if(_interiorBtn.isPressed())
+     {
+        _interiorState = OFF; 
+     }
+  }
+}
+
+void updateHeadlightState(unsigned long delta)
+{
+  switch(_headlightState)
+  {
+    case OFF:
+      digitalWrite(HEADLIGHT_PIN, LOW);
+      if(_headlightBtn.isPressed())
+      {
+        _headlightState = ON;
+      }
+      break;
+    case ON:
+     digitalWrite(HEADLIGHT_PIN,HIGH);
+     if(_headlightBtn.isPressed())
+     {
+        _headlightState = OFF; 
+     }
+  }
 }
 
 /*
