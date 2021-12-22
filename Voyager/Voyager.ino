@@ -3,6 +3,8 @@
 #include "VoyagerConfig.h"
 #include "SfButton.h"
 
+
+String _serialCmd;
 unsigned long _lastUpdate;
 
 int _navCount;
@@ -17,8 +19,30 @@ SfButton _headlightBtn(HEADLIGHT_BTN);
 SfButton _interiorBtn(INTERIOR_BTN);
 SfButton _deflectorBtn(DEFLECTOR_BTN);
 
+void printState(int state)
+{
+ switch(state)
+ {
+  case OFF: Serial.print("OFF");break;
+  case ON: Serial.print("ON");break;
+  case BLINK_ON: Serial.print("BLINK_ON");break;
+  case BLINK_OFF: Serial.print("BLINK OFF"); break;
+  default: Serial.print(state);break;
+  }
+}
+
+void printStatus()
+{
+  Serial.println("Voyager Status");
+  Serial.print("NAV: ");printState(_navState);Serial.println();
+  Serial.print("HEADLIGHT: ");printState(_headlightState);Serial.println();
+  Serial.print("INTERIOR: ");printState(_interiorState);Serial.println();
+  Serial.print("DEFLECTOR: ");printState(_deflectorState);Serial.println();
+}
+
 void setup() {
-  _navState = OFF;
+  Serial.begin(9600);
+  _navState = BLINK_ON;
   _headlightState = OFF;
   _interiorState = OFF;
   _deflectorState = OFF;
@@ -33,6 +57,37 @@ void setup() {
   pinMode(HEADLIGHT_PIN, OUTPUT);
   pinMode(INTERIOR_LIGHTS_PIN, OUTPUT);
   pinMode(DEFLECTOR_PIN, OUTPUT);
+
+  printStatus();
+}
+
+void handleSerial()
+{
+  if(Serial.available())
+  {
+    _serialCmd = Serial.readString();
+    
+    if(_serialCmd.startsWith("NAV"))
+    {
+      _navBtn.press();
+    }
+    else if(_serialCmd.startsWith("HEAD"))
+    {
+     _headlightBtn.press(); 
+    }
+    else if(_serialCmd.startsWith("DEFLECT"))
+    {
+      _deflectorBtn.press();
+    }
+    else if(_serialCmd.startsWith("INTER"))
+    {
+      _interiorBtn.press();
+    }
+    else if(_serialCmd.startsWith("STATUS"))
+    {
+      printStatus();
+    }
+  }
 }
 
 void loop()
@@ -40,8 +95,13 @@ void loop()
   unsigned long currTime = millis();
   unsigned long delta = currTime - _lastUpdate;
 
+  //Serial button pressing
+  handleSerial();
+  
   _navBtn.update(currTime);
   _headlightBtn.update(currTime);
+  _interiorBtn.update(currTime);
+  _deflectorBtn.update(currTime);
   
   updateNavState(delta);
   updateHeadlightState(delta);
@@ -143,7 +203,7 @@ void updateNavState(unsigned long delta)
 
       if(_navBtn.isPressed())
       {
-        _navState = OFF;
+        _navState = ON;
       }
       else if(_navCount >= BLINK_ON_TIME)
       {
@@ -158,7 +218,7 @@ void updateNavState(unsigned long delta)
 
       if(_navBtn.isPressed())
       {
-        _navState = OFF;
+        _navState = ON;
       }
       else if(_navCount >= BLINK_OFF_TIME)
       {

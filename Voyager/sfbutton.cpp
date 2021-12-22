@@ -18,6 +18,7 @@ void SfButton::setup()
 {
   pinMode(_btnPin, INPUT_PULLUP);
   _btnState = BTN_OFF;
+  _softPress = false;
   _pressTime = millis();
 }
 bool SfButton::update()
@@ -25,9 +26,23 @@ bool SfButton::update()
   unsigned long currTime = millis();
   update(currTime);
 }
+
+void SfButton::press()
+{
+  _softPress = true;
+}
+
 bool SfButton::update(unsigned long currTime)
 {
   int currState = digitalRead(_btnPin);
+  int delta = currTime -_pressTime;
+  if(_softPress)
+  {
+    currState = BTN_ON;
+    _btnState = BTN_PRESSED;
+    delta = DEBOUNCE_TIME;
+    _softPress = false;
+  }
   if(currState == BTN_ON)
   {
     if(_btnState == BTN_OFF)
@@ -35,7 +50,7 @@ bool SfButton::update(unsigned long currTime)
       _pressTime = currTime;
       _btnState = BTN_PRESSED;
     }
-    else if(_btnState == BTN_PRESSED && (currTime - _pressTime) >= DEBOUNCE_TIME)
+    else if(_btnState == BTN_PRESSED && delta >= DEBOUNCE_TIME)
     {
       _btnState = BTN_ON;
     }
