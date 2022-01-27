@@ -17,14 +17,22 @@ byte _headlightState;
 byte _interiorState;
 byte _deflectorState;
 byte _warpState;
+byte _photonsState[4];
+byte _aftNext;
+byte _fwdNext;
 
 SfButton _navBtn(NAV_TOGGLE_BTN);
 SfButton _headlightBtn(HEADLIGHT_BTN);
 SfButton _interiorBtn(INTERIOR_BTN);
 SfButton _deflectorBtn(DEFLECTOR_BTN);
 SfButton _warpBtn(WARP_BTN);
+SfButton _fwdPhotonBtn(FORWARD_PHOTON_BTN);
+SfButton _aftPhotonBtn(AFT_PHOTON_BTN);
 
 CRGB _warpEngines[WARP_LED_CNT];
+CRGB _fwdPhotons[2];
+CRGB _aftPhotons[2];
+CRGB _phasers[PHASER_LED_CNT];
 void printState(int state)
 {
  switch(state)
@@ -36,6 +44,7 @@ void printState(int state)
   case WARP_IDLE: Serial.print("WARP IDLE"); break;
   case WARP_ENGAGE: Serial.print("WARP ENGAGE"); break;
   case WARP_FLASH: Serial.print("WARP FLASH"); break;
+  case PHOTON_IDLE: Serial.print("PHOTON IDLE"); break;
   default: Serial.print(state);break;
   }
 }
@@ -48,6 +57,10 @@ void printStatus()
   Serial.print("INTERIOR: ");printState(_interiorState);Serial.println();
   Serial.print("DEFLECTOR: ");printState(_deflectorState);Serial.println();
   Serial.print("WARP: ");printState(_warpState);Serial.println();
+  Serial.print("FWD PHOTON 1: ");printState(_photonsState[0]);Serial.println();
+  Serial.print("FWD PHOTON 2: ");printState(_photonsState[1]);Serial.println();
+  Serial.print("AFT PHOTON 1: ");printState(_photonsState[2]);Serial.println();
+  Serial.print("AFT PHOTON 2: ");printState(_photonsState[3]);Serial.println();
 }
 
 void setup() {
@@ -56,13 +69,21 @@ void setup() {
   _headlightState = OFF;
   _interiorState = OFF;
   _deflectorState = OFF;
-  _warpState = OFF;
+  _warpState = WARP_IDLE;
+  _photonsState[0] = OFF;
+  _photonsState[1] = OFF;
+  _photonsState[2] = OFF;
+  _photonsState[3] = OFF;
+  
   _navBtn.setup();
   _headlightBtn.setup();
   _interiorBtn.setup();
   _deflectorBtn.setup();
   _warpBtn.setup();
 
+  _fwdNext = 0;
+  _aftNext = 0;
+  
   pinMode(NAV_LIGHTS_PIN,OUTPUT);
   pinMode(NAV_BEACON_PIN, OUTPUT);
   pinMode(HEADLIGHT_PIN, OUTPUT);
@@ -98,6 +119,14 @@ void handleSerial()
     {
       _warpBtn.press();
     }
+    else if(_serialCmd.startsWith("FWD"))
+    {
+      _fwdPhotonBtn.press();
+    }
+    else if(_serialCmd.startsWith("AFT"))
+    {
+      _aftPhotonBtn.press();
+    }
     else if(_serialCmd.startsWith("STATUS"))
     {
       printStatus();
@@ -118,12 +147,15 @@ void loop()
   _interiorBtn.update(currTime);
   _deflectorBtn.update(currTime);
   _warpBtn.update(currTime);
+  _aftPhotonBtn.update(currTime);
+  _fwdPhotonBtn.update(currTime);
   
   updateNavState(delta);
   updateHeadlightState(delta);
   updateInteriorState(delta);
   updateDeflectorState(delta);
   updateWarpState(delta);
+
   _lastUpdate = currTime;
 }
 
