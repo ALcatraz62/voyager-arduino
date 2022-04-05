@@ -10,16 +10,17 @@ String _serialCmd;
 unsigned long _lastUpdate;
 
 int _navCount;
-int  _warpCount;
+int _warpCount;
+int _fwdCount;
+int _aftCount;
 
 byte _navState;
 byte _headlightState;
 byte _interiorState;
 byte _deflectorState;
 byte _warpState;
-byte _photonsState[4];
-byte _aftNext;
-byte _fwdNext;
+byte _fwdPhotonState;
+byte _aftPhotonState;
 
 SfButton _navBtn(NAV_TOGGLE_BTN);
 SfButton _headlightBtn(HEADLIGHT_BTN);
@@ -28,11 +29,13 @@ SfButton _deflectorBtn(DEFLECTOR_BTN);
 SfButton _warpBtn(WARP_BTN);
 SfButton _fwdPhotonBtn(FORWARD_PHOTON_BTN);
 SfButton _aftPhotonBtn(AFT_PHOTON_BTN);
+SfButton _photonToggleBtn(PHOTON_TOGGLE_BTN);
 
 CRGB _warpEngines[WARP_LED_CNT];
 CRGB _fwdPhotons[2];
 CRGB _aftPhotons[2];
 CRGB _phasers[PHASER_LED_CNT];
+
 void printState(int state)
 {
  switch(state)
@@ -44,7 +47,10 @@ void printState(int state)
   case WARP_IDLE: Serial.print("WARP IDLE"); break;
   case WARP_ENGAGE: Serial.print("WARP ENGAGE"); break;
   case WARP_FLASH: Serial.print("WARP FLASH"); break;
-  case PHOTON_IDLE: Serial.print("PHOTON IDLE"); break;
+  case PHOTON_IDLE_1: Serial.print("PHOTON IDLE 1"); break;
+  case PHOTON_IDLE_2: Serial.print("PHOTON IDLE 2"); break;
+  case FIRING_1: Serial.print("FIRING 1"); break;
+  case FIRING_2: Serial.print("FIRING 2"); break;
   default: Serial.print(state);break;
   }
 }
@@ -57,32 +63,29 @@ void printStatus()
   Serial.print("INTERIOR: ");printState(_interiorState);Serial.println();
   Serial.print("DEFLECTOR: ");printState(_deflectorState);Serial.println();
   Serial.print("WARP: ");printState(_warpState);Serial.println();
-  Serial.print("FWD PHOTON 1: ");printState(_photonsState[0]);Serial.println();
-  Serial.print("FWD PHOTON 2: ");printState(_photonsState[1]);Serial.println();
-  Serial.print("AFT PHOTON 1: ");printState(_photonsState[2]);Serial.println();
-  Serial.print("AFT PHOTON 2: ");printState(_photonsState[3]);Serial.println();
+  Serial.print("FWD PHOTONS: ");printState(_fwdPhotonState);Serial.println();
+  Serial.print("AFT PHOTONS: ");printState(_aftPhotonState);Serial.println();
 }
 
 void setup() {
   Serial.begin(9600);
+  Serial.setTimeout(10);
   _navState = BLINK_ON;
   _headlightState = OFF;
   _interiorState = OFF;
   _deflectorState = OFF;
   _warpState = WARP_IDLE;
-  _photonsState[0] = OFF;
-  _photonsState[1] = OFF;
-  _photonsState[2] = OFF;
-  _photonsState[3] = OFF;
+  _fwdPhotonState = OFF;
+  _aftPhotonState = OFF;
   
   _navBtn.setup();
   _headlightBtn.setup();
   _interiorBtn.setup();
   _deflectorBtn.setup();
   _warpBtn.setup();
-
-  _fwdNext = 0;
-  _aftNext = 0;
+  _fwdPhotonBtn.setup();
+  _aftPhotonBtn.setup();
+  _photonToggleBtn.setup();
   
   pinMode(NAV_LIGHTS_PIN,OUTPUT);
   pinMode(NAV_BEACON_PIN, OUTPUT);
@@ -90,6 +93,8 @@ void setup() {
   pinMode(INTERIOR_LIGHTS_PIN, OUTPUT);
   pinMode(DEFLECTOR_PIN, OUTPUT);
   FastLED.addLeds<NEOPIXEL,WARP_ENGINES_PIN>(_warpEngines,WARP_LED_CNT);
+  FastLED.addLeds<NEOPIXEL,AFT_PHOTON>(_aftPhotons,2);
+  FastLED.addLeds<NEOPIXEL,FWD_PHOTON>(_fwdPhotons,2);
   printStatus();
 }
 
@@ -119,6 +124,10 @@ void handleSerial()
     {
       _warpBtn.press();
     }
+    else if(_serialCmd.startsWith("PHO"))
+    {
+      _photonToggleBtn.press();
+    }
     else if(_serialCmd.startsWith("FWD"))
     {
       _fwdPhotonBtn.press();
@@ -141,7 +150,6 @@ void loop()
 
   //Serial button pressing
   handleSerial();
-  
   _navBtn.update(currTime);
   _headlightBtn.update(currTime);
   _interiorBtn.update(currTime);
@@ -149,14 +157,18 @@ void loop()
   _warpBtn.update(currTime);
   _aftPhotonBtn.update(currTime);
   _fwdPhotonBtn.update(currTime);
+  _photonToggleBtn.update(currTime);
   
   updateNavState(delta);
   updateHeadlightState(delta);
   updateInteriorState(delta);
   updateDeflectorState(delta);
   updateWarpState(delta);
+  _fwdPhotonState = updatePhotonState(_fwdPhotonState, &_fwdCount, _fwdPhotons, _photonToggleBtn.isPressed(), _fwdPhotonBtn.isPressed(), delta);
+  _aftPhotonState = updatePhotonState(_aftPhotonState, &_aftCount, _aftPhotons, _photonToggleBtn.isPressed(), _aftPhotonBtn.isPressed(), delta);
 
   _lastUpdate = currTime;
+   FastLED.show();
 }
 
 void updateDeflectorState(unsigned long delta)
@@ -358,5 +370,56 @@ void updateWarpState(unsigned long delta)
       }
       break;
   }
-  FastLED.show();
+}
+
+byte updatePhotonState(byte currState,int* animeCnt, CRGB leds[],bool btnPressed, bool firePressed, unsigned long delta)
+{
+  switch(currState)
+  {
+   case OFF:
+      leds[0] = CRGB::Black;
+      leds[1] = CRGB::Black;
+      *animeCnt = 0;
+      if(btnPressed)
+        currState = PHOTON_IDLE_1;
+      break;
+   case PHOTON_IDLE_1:
+      leds[0] = PHOTON_IDLE_COLOR;
+      leds[1] = PHOTON_IDLE_COLOR;
+      *animeCnt = 0;
+      if(firePressed)
+        currState = FIRING_1;
+      if(btnPressed)
+        currState = OFF;
+      break;
+   case FIRING_1:
+      if(fireAnime(*animeCnt,leds[0]))
+        currState = PHOTON_IDLE_2;
+      *animeCnt = *animeCnt + delta;
+      break;
+   case PHOTON_IDLE_2:
+      leds[0] = PHOTON_IDLE_COLOR;
+      leds[1] = PHOTON_IDLE_COLOR;
+      *animeCnt = 0;
+      if(firePressed)
+        currState = FIRING_2;
+      if(btnPressed)
+        currState = OFF;    
+      break;
+    case FIRING_2:
+      if(fireAnime(*animeCnt, leds[1]))
+        currState = PHOTON_IDLE_1;
+      *animeCnt = *animeCnt + delta;
+      break;
+  }
+  return currState; 
+}
+
+bool fireAnime(int animeCnt, CRGB &led)
+{
+  if(animeCnt <= 60) { led = CRGB::White; return false;}
+  else if(animeCnt <= 220) { led = PHOTON_FIRE_COLOR; return false;}
+  else if(animeCnt <= 900) {  led = CRGB::Black; return false;} 
+  else
+    return true;
 }

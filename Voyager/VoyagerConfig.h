@@ -13,6 +13,7 @@
 #define STARBOARD_PHASER_BTN 13
 #define FORWARD_PHOTON_BTN 13
 #define AFT_PHOTON_BTN 13
+#define PHOTON_TOGGLE_BTN 13
 #define WARP_BTN 13
 
 // Ship Pins 
@@ -50,7 +51,8 @@
 /*
  * Photon Torpedoes Settings
  */
-#define PHOTON_IDLE_COLOR 0xBB110A
+#define PHOTON_IDLE_COLOR 0x0A0000
+#define PHOTON_FIRE_COLOR 0xFF0000
 /*
  * Engine Settings
  */
@@ -71,6 +73,8 @@
 #define WARP_IDLE 4
 #define WARP_ENGAGE 5
 #define WARP_FLASH 6
-#define PHOTON_IDLE 7
-#define FIRING 8
+#define PHOTON_IDLE_1 7
+#define FIRING_1 8
+#define PHOTON_IDLE_2 9
+#define FIRING_2 10
 #endif
