@@ -3,6 +3,7 @@
 //Voyager Controller
 // This code handles the special effects for the Star Trek Voyager Scale Model.
 #include "VoyagerConfig.h"
+#include "VoyagerCommands.h"
 #include "SfButton.h"
 
 
@@ -104,39 +105,39 @@ void handleSerial()
   {
     _serialCmd = Serial.readString();
     
-    if(_serialCmd.startsWith("NAV"))
+    if(_serialCmd.startsWith(NAV_CMD))
     {
       _navBtn.press();
     }
-    else if(_serialCmd.startsWith("HEAD"))
+    else if(_serialCmd.startsWith(HEADLIGHT_CMD))
     {
      _headlightBtn.press(); 
     }
-    else if(_serialCmd.startsWith("DEFLECT"))
+    else if(_serialCmd.startsWith(DEFLECTOR_CMD))
     {
       _deflectorBtn.press();
     }
-    else if(_serialCmd.startsWith("INTER"))
+    else if(_serialCmd.startsWith(INTERIOR_CMD))
     {
       _interiorBtn.press();
     }
-    else if(_serialCmd.startsWith("WARP"))
+    else if(_serialCmd.startsWith(WARP_CMD))
     {
       _warpBtn.press();
     }
-    else if(_serialCmd.startsWith("PHO"))
+    else if(_serialCmd.startsWith(PHOTON_CMD))
     {
       _photonToggleBtn.press();
     }
-    else if(_serialCmd.startsWith("FWD"))
+    else if(_serialCmd.startsWith(FOWARD_FIRE_CMD))
     {
       _fwdPhotonBtn.press();
     }
-    else if(_serialCmd.startsWith("AFT"))
+    else if(_serialCmd.startsWith(AFT_FIRE_CMD))
     {
       _aftPhotonBtn.press();
     }
-    else if(_serialCmd.startsWith("STATUS"))
+    else if(_serialCmd.startsWith(STATUS_TEXT_CMD))
     {
       printStatus();
     }
