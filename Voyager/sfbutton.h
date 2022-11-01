@@ -24,6 +24,7 @@ class SfButton
     void setup();
     void press();
     bool update();
+    bool update(int currState, unsigned long currTime);
     bool update(unsigned long currTime);
     bool isPressed();
     bool isHeld();
@@ -32,7 +33,7 @@ class SfButton
   private:
     bool _softPress;
     int _btnPin;
-    unsigned int _btnState;
+    uint8_t _btnState;
     unsigned long _pressTime;
 };
 #endif 

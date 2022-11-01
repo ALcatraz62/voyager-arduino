@@ -35,6 +35,11 @@ void SfButton::press()
 bool SfButton::update(unsigned long currTime)
 {
   int currState = digitalRead(_btnPin);
+  return update(currState, currTime); 
+}
+
+bool SfButton::update(int currState,unsigned long currTime)
+{
   int delta = currTime -_pressTime;
   if(_softPress)
   {
