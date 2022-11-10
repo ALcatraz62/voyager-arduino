@@ -106,6 +106,7 @@
  */
 #define WARP_LED_CNT 7
 #define COLLECTOR_INDEX 6
+#define POWERUP_TIME 2000
 #define ENGAGE_TIME  2200
 #define ENGAGE_FLASH_TIME 200
 #define IDLE_CHILLER_COLOR 0x000020
@@ -118,13 +119,14 @@
 #define ON 1
 #define BLINK_ON 2
 #define BLINK_OFF 3
-#define WARP_IDLE 4
-#define WARP_ENGAGE 5
-#define WARP_FLASH 6
-#define PHOTON_IDLE_1 7
-#define FIRING_1 8
-#define PHOTON_IDLE_2 9
-#define FIRING_2 10
-#define PHASER_MOVING 11
-#define PHASER_FIRE 12
+#define WARP_POWERUP 4
+#define WARP_IDLE 5
+#define WARP_ENGAGE 6
+#define WARP_FLASH 7
+#define PHOTON_IDLE_1 8
+#define FIRING_1 9
+#define PHOTON_IDLE_2 10
+#define FIRING_2 11
+#define PHASER_MOVING 12
+#define PHASER_FIRE 13
 #endif

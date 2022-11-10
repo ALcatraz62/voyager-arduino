@@ -1,7 +1,7 @@
 #include <FastLED.h>
 #include <Wire.h>
 #include <SoftwareSerial.h>
-#include "Adafruit_Soundboard.h"
+#include "SoundFx.h"
 #include "Adafruit_MPR121.h"
 
 //Voyager Controller
@@ -22,7 +22,7 @@ uint16_t lasttouched = 0;
 uint16_t currtouched = 0;
 
 SoftwareSerial ss = SoftwareSerial(SND_TX,SND_RX);
-Adafruit_Soundboard sfx = Adafruit_Soundboard(&ss, NULL, SND_RST);
+SoundFx sfx = SoundFx(&ss, SND_RST);
 
 uint32_t _lastUpdate;
 
@@ -439,8 +439,25 @@ void updateNavState(uint32_t delta)
 void updateWarpState(uint32_t delta)
 {
   uint8_t dim = 0;
+   uint16_t maxIndex = 0;
   switch(_warpState)
   {
+    case WARP_POWERUP:
+      _warpCount += delta;
+       maxIndex = map(_warpCount,0,POWERUP_TIME,0,WARP_LED_CNT);
+      for( uint16_t i=0; i< maxIndex; i++)
+      {
+        if(i < COLLECTOR_INDEX)
+          _warpEngines[i] = IDLE_CHILLER_COLOR;
+        else
+          _warpEngines[i] = IDLE_COLLECTOR_COLOR;
+      }
+      if(_warpCount > POWERUP_TIME)
+      {
+        _warpState = WARP_IDLE;
+        _warpCount = 0;
+      }
+      break;
     case WARP_IDLE:
       for(uint16_t i = 0; i < WARP_LED_CNT; i++)
       {
@@ -515,7 +532,7 @@ void updateWarpState(uint32_t delta)
       if(_warpBtn.isPressed())
       {
         sfx.playTrack((uint8_t)WARP_ON_FX);
-        _warpState = WARP_IDLE;
+        _warpState = WARP_POWERUP;
       }
       break;
   }
